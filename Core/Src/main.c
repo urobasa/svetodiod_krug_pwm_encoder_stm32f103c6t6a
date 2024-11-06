@@ -95,6 +95,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  //start check after standby mode
   __HAL_RCC_PWR_CLK_ENABLE();
   /* Check if the system was resumed from Standby mode */
   if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)
@@ -108,6 +109,7 @@ int main(void)
       __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
     }
   }
+  // end check standby
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -137,9 +139,11 @@ int main(void)
 	    // Проверяем переход с 0 на диапазон от 290 до 300
 	    if (previousCount == 0 && encoderCount >= 290 && encoderCount <= 300) {
 	        encoderCount = 0;  // Устанавливаем значение на 0
+		    //готовимся к переходу в standby
 	        __HAL_TIM_SET_COUNTER(&htim3, encoderCount);
 	        HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
 	        __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+		    //переходим
 	        HAL_PWR_EnterSTANDBYMode();
 	    }
 
