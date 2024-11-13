@@ -95,21 +95,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  //start check after standby mode
-  __HAL_RCC_PWR_CLK_ENABLE();
-  /* Check if the system was resumed from Standby mode */
-  if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)
-  {
-    /* Clear Standby flag */
-    __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);
 
-    /* Check and Clear the Wakeup flag */
-    if (__HAL_PWR_GET_FLAG(PWR_FLAG_WU) != RESET)
-    {
-      __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
-    }
-  }
-  // end check standby
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -123,7 +109,8 @@ int main(void)
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
-//  __HAL_TIM_SET_COUNTER(&htim3, 0);
+  __HAL_TIM_SET_COUNTER(&htim3, 5);
+
   uint32_t previousTime = 0;
   /* USER CODE END 2 */
 
@@ -137,22 +124,42 @@ int main(void)
 	    int encoderCount = __HAL_TIM_GET_COUNTER(&htim3);
 
 	    // Проверяем переход с 0 на диапазон от 290 до 300
-	    if (previousCount == 0 && encoderCount >= 290 && encoderCount <= 300) {
-	        encoderCount = 0;  // Устанавливаем значение на 0
-		    //готовимся к переходу в standby
-	        __HAL_TIM_SET_COUNTER(&htim3, encoderCount);
-	        HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
-	        __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
-		    //переходим
-	        HAL_PWR_EnterSTANDBYMode();
+	    if ((previousCount == 0 || previousCount < 4) && encoderCount >= 290 && encoderCount <= 300) {
+	        encoderCount = 5;
+	        HAL_TIM_Encoder_Stop(&htim3, TIM_CHANNEL_1);
+	        HAL_TIM_Encoder_Stop(&htim3, TIM_CHANNEL_2);
+	        __HAL_TIM_SET_COUNTER(&htim3, 5);
+	        Set_color(5,5,5);
+	        HAL_Delay(300);
+	        Set_color(0,0,0);
+	        HAL_Delay(300);
+	        Set_color(5,5,5);
+	        HAL_Delay(300);
+	        Set_color(0,0,0);
+	        HAL_Delay(300);
+	        HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+	        HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
 	    }
 
 	    // Проверяем переход с 300 на диапазон от 0 до 10
 	    if (previousCount == 300 && encoderCount <= 10) {
 	        encoderCount = 300;  // Устанавливаем значение на 300
+	        HAL_TIM_Encoder_Stop(&htim3, TIM_CHANNEL_1);
+	        HAL_TIM_Encoder_Stop(&htim3, TIM_CHANNEL_2);
 	        __HAL_TIM_SET_COUNTER(&htim3, encoderCount);
+	        Set_color(0,0,0);
+	        HAL_Delay(300);
+	        Set_color(300,300,300);
+	        HAL_Delay(300);
+	        Set_color(0,0,0);
+	        HAL_Delay(300);
+	        Set_color(300,300,300);
+	        HAL_Delay(300);
+	        Set_color(0,0,0);
+	        HAL_Delay(300);
+	        HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+	        HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
 	    }
-
 
       Set_color(encoderCount,encoderCount,encoderCount);
       previousCount = encoderCount;
